@@ -2,14 +2,15 @@ import pygame
 import sys
 import random
 import time
+import math
 
 # Initialize Pygame
 pygame.init()
 
 # Constants
-WIDTH, HEIGHT = 800, 900
-BOARD_SIZE = 600
-BUTTON_WIDTH, BUTTON_HEIGHT = 200, 50
+WIDTH, HEIGHT = 600, 700
+BOARD_SIZE = 500
+BUTTON_WIDTH, BUTTON_HEIGHT = 150, 50
 
 # Colors
 WHITE = (255, 255, 255)
@@ -22,8 +23,8 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
 # Fonts
-FONT = pygame.font.Font(None, 36)
-LARGE_FONT = pygame.font.Font(None, 72)
+FONT = pygame.font.Font(None, 24)
+LARGE_FONT = pygame.font.Font(None, 68)
 XO_FONT = pygame.font.Font(None, 120)  # Larger font for X and O
 
 class TicTacToe:
@@ -31,7 +32,7 @@ class TicTacToe:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Tic Tac Toe")
         self.clock = pygame.time.Clock()
-
+        self.star_color = YELLOW
         self.board_size = None
         self.cell_size = None
         self.board = None
@@ -46,6 +47,8 @@ class TicTacToe:
         self.disabled_cells = []
         self.computer_thinking = False
         self.computer_move_time = None
+        self.message = ""
+        self.message_time = 0
 
         self.state = "menu"
 
@@ -76,6 +79,16 @@ class TicTacToe:
 
         return button_3x3, button_5x5, button_instructions
 
+
+    def draw_star(self, surface, color, x, y, size):
+        points = []
+        for i in range(10):
+            angle = math.pi * 2 * i / 10 - math.pi / 2
+            radius = size / 2 if i % 2 == 0 else size / 4
+            point_x = x + radius * math.cos(angle)
+            point_y = y + radius * math.sin(angle)
+            points.append((point_x, point_y))
+        pygame.draw.polygon(surface, color, points)
     def draw_board(self):
         self.screen.fill(BEIGE)
 
@@ -100,9 +113,12 @@ class TicTacToe:
                     self.screen.blit(text, (rect.centerx - text.get_width() // 2,
                                             rect.centery - text.get_height() // 2))
                 elif (i, j) in self.disabled_cells:
-                    text = FONT.render('*', True, BROWN)
-                    self.screen.blit(text, (rect.centerx - text.get_width() // 2,
-                                            rect.centery - text.get_height() // 2))
+                    star_size = min(self.cell_size, self.cell_size) * 0.6
+                    self.draw_star(self.screen, self.star_color, rect.centerx, rect.centery, star_size)
+                # Draw message
+        if self.message and time.time() < self.message_time:
+            message_surface = FONT.render(self.message, True, RED)
+            self.screen.blit(message_surface, (WIDTH // 2 - message_surface.get_width() // 2, HEIGHT - 100))
 
         # Draw winning line if exists and there's a winner
         if self.winning_line and self.winner:
@@ -226,7 +242,18 @@ class TicTacToe:
             self.check_game_over()
             if self.current_player == 'O':
                 self.computer_thinking = True
+                self.computer_move_time = time.time() + 1  # Set computer move time to 1 second from now
+        else:
+            self.show_message("Cannot use star on empty cell!")
+            self.star_mode = False
+            if self.current_player == 'X':
+                self.x_star_used = False
+            else:
+                self.o_star_used = False
 
+    def show_message(self, text):
+        self.message = text
+        self.message_time = time.time() + 2  # Display message for 2 seconds
     def make_computer_move(self):
         start_time = time.time()
         move = self.best_move()
@@ -244,6 +271,8 @@ class TicTacToe:
             if self.check_game_over():
                 return
             self.current_player = 'X'
+        else:
+            print("No valid moves available for computer")
         self.computer_thinking = False
         self.computer_move_time = None
 
