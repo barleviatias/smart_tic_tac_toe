@@ -4,15 +4,15 @@ import random
 import time
 import math
 
-# Initialize Pygame
+# אתחול Pygame
 pygame.init()
 
-# Constants
+# קבועים
 WIDTH, HEIGHT = 600, 700
 BOARD_SIZE = 500
 BUTTON_WIDTH, BUTTON_HEIGHT = 150, 50
 
-# Colors
+# צבעים
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BEIGE = (245, 245, 220)
@@ -22,10 +22,10 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 
-# Fonts
+# גופנים
 FONT = pygame.font.Font(None, 24)
 LARGE_FONT = pygame.font.Font(None, 68)
-XO_FONT = pygame.font.Font(None, 120)  # Larger font for X and O
+XO_FONT = pygame.font.Font(None, 120)  # גופן גדול יותר ל-X ו-O
 
 class TicTacToe:
     def __init__(self):
@@ -52,6 +52,7 @@ class TicTacToe:
 
         self.state = "menu"
 
+    # מציירת את התפריט הראשי
     def draw_menu(self):
         self.screen.fill(BEIGE)
         title = LARGE_FONT.render("Tic Tac Toe", True, BROWN)
@@ -79,7 +80,7 @@ class TicTacToe:
 
         return button_3x3, button_5x5, button_instructions
 
-
+    # מציירת כוכב על המסך
     def draw_star(self, surface, color, x, y, size):
         points = []
         for i in range(10):
@@ -89,6 +90,8 @@ class TicTacToe:
             point_y = y + radius * math.sin(angle)
             points.append((point_x, point_y))
         pygame.draw.polygon(surface, color, points)
+
+    # מציירת את לוח המשחק
     def draw_board(self):
         self.screen.fill(BEIGE)
 
@@ -115,7 +118,8 @@ class TicTacToe:
                 elif (i, j) in self.disabled_cells:
                     star_size = min(self.cell_size, self.cell_size) * 0.6
                     self.draw_star(self.screen, self.star_color, rect.centerx, rect.centery, star_size)
-                # Draw message
+
+        # Draw message
         if self.message and time.time() < self.message_time:
             message_surface = FONT.render(self.message, True, RED)
             self.screen.blit(message_surface, (WIDTH // 2 - message_surface.get_width() // 2, HEIGHT - 100))
@@ -165,6 +169,7 @@ class TicTacToe:
 
         return button_star, button_reset, button_reset_scores, button_main_menu
 
+    # מציירת את מסך ההוראות
     def draw_instructions(self):
         self.screen.fill(BEIGE)
         title = LARGE_FONT.render("Instructions", True, BROWN)
@@ -208,6 +213,7 @@ class TicTacToe:
 
         return button_back
 
+    # מתחילה משחק חדש
     def start_game(self, size):
         self.board_size = size
         self.cell_size = BOARD_SIZE // size
@@ -221,6 +227,7 @@ class TicTacToe:
         self.winner = None
         self.state = "game"
 
+    # מטפלת בלחיצה על תא בלוח
     def click(self, i, j):
         if self.star_mode:
             self.star_click(i, j)
@@ -233,6 +240,7 @@ class TicTacToe:
                 self.computer_thinking = True
                 self.computer_move_time = time.time() + 1  # Set computer move time to 1 second from now
 
+    # מטפלת בלחיצה על תא במצב כוכב
     def star_click(self, i, j):
         if self.board[i][j] != '':
             self.board[i][j] = ''
@@ -251,9 +259,12 @@ class TicTacToe:
             else:
                 self.o_star_used = False
 
+    # מציגה הודעה על המסך
     def show_message(self, text):
         self.message = text
         self.message_time = time.time() + 2  # Display message for 2 seconds
+
+    # מבצעת מהלך של המחשב
     def make_computer_move(self):
         start_time = time.time()
         move = self.best_move()
@@ -276,6 +287,7 @@ class TicTacToe:
         self.computer_thinking = False
         self.computer_move_time = None
 
+    # מוצאת את המהלך הטוב ביותר עבור המחשב
     def best_move(self):
         best_score = float('-inf')
         move = None
@@ -297,6 +309,7 @@ class TicTacToe:
                         break
         return move
 
+    # אלגוריתם מינימקס עם גיזום אלפא-בטא
     def minimax(self, depth, is_maximizing, alpha, beta, depth_limit):
         winner = self.check_winner()
         if winner == 'X':
@@ -333,6 +346,7 @@ class TicTacToe:
                             break
             return best_score
 
+    # בודקת אם יש מנצח
     def check_winner(self):
         win_length = 4 if self.board_size == 5 else 3
 
@@ -361,10 +375,12 @@ class TicTacToe:
 
         return None
 
+    # בודקת אם הלוח מלא
     def is_full(self):
         return all(self.board[i][j] != '' or (i, j) in self.disabled_cells
                    for i in range(self.board_size) for j in range(self.board_size))
 
+    # בודקת אם המשחק הסתיים
     def check_game_over(self):
         self.winner = self.check_winner()
         if self.winner:
@@ -379,6 +395,7 @@ class TicTacToe:
             return True
         return False
 
+    # מציגה מסך סיום משחק
     def show_game_over(self, message):
         self.draw_board()  # Draw the final board state
         overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -391,6 +408,7 @@ class TicTacToe:
         pygame.time.wait(2000)
         self.reset_board()
 
+    # מאפסת את הלוח למשחק חדש
     def reset_board(self):
         self.board = [['' for _ in range(self.board_size)] for _ in range(self.board_size)]
         self.current_player = 'X'
@@ -401,10 +419,12 @@ class TicTacToe:
         self.winning_line = None
         self.winner = None
 
+    # מאפסת את הניקוד
     def reset_scores(self):
         self.player_x_wins = 0
         self.player_o_wins = 0
 
+    # מפעילה את המשחק
     def run(self):
         running = True
         while running:
